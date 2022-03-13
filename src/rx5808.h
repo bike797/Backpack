@@ -43,4 +43,5 @@ private:
     uint32_t rtc6705readRegister(uint8_t readRegister);
     void EnableSPIMode();
     bool SPIModeEnabled = false;
+    void DisableSPIMode();
 };

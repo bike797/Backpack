@@ -2,6 +2,8 @@
 #include "common.h"
 #include "device.h"
 
+#if defined(PIN_BUTTON)
+
 #if defined(TARGET_RX)
 extern bool connectionHasModelMatch;
 #endif
@@ -95,3 +97,5 @@ device_t LED_device = {
     .event = event,
     .timeout = timeout
 };
+
+#endif

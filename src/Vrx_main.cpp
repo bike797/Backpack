@@ -157,7 +157,9 @@ void OnDataRecv(const uint8_t * mac_addr, const uint8_t *data, int data_len)
       msp.markPacketReceived();
     }
   }
+  #ifdef PIN_LED
   blinkLED();
+  #endif
 }
 
 void ProcessMSPPacket(mspPacket_t *packet)
@@ -223,7 +225,9 @@ void SetupEspNow()
   if (esp_now_init() != 0)
     {
       DBGLN("Error initializing ESP-NOW");
+      #ifdef PIN_LED
       turnOffLED();
+      #endif
       ESP.restart();
     }
 
@@ -280,7 +284,9 @@ void RequestVTXPacket()
   packet.function = MSP_ELRS_REQU_VTX_PKT;
   packet.addByte(0);  // empty byte
 
+  #ifdef PIN_LED
   blinkLED();
+  #endif
   sendMSPViaEspnow(&packet);
 }
 
@@ -409,7 +415,9 @@ void loop()
   #if defined(PLATFORM_ESP8266) || defined(PLATFORM_ESP32)
     // If the reboot time is set and the current time is past the reboot time then reboot.
     if (rebootTime != 0 && now > rebootTime) {
+      #ifdef PIN_LED
       turnOffLED();
+      #endif
       ESP.restart();
     }
   #endif

@@ -34,9 +34,17 @@ RX5808::EnableSPIMode()
 
     SPIModeEnabled = true;
 
-    DBGLN("SPI config complete");
+    DBGLN("SPI Enable");
 }
 
+void
+RX5808::DisableSPIMode()
+{
+    Init();
+    SPIModeEnabled = false;
+
+    DBGLN("SPI Disable");
+}
 void
 RX5808::SendIndexCmd(uint8_t index)
 {
@@ -93,6 +101,8 @@ RX5808::rtc6705WriteRegister(uint32_t buf)
     #if defined(PIN_CS_2)
         digitalWrite(PIN_CS_2, HIGH);
     #endif
+
+    DisableSPIMode();
 }
 
 uint32_t
@@ -149,6 +159,8 @@ RX5808::rtc6705readRegister(uint8_t readRegister)
     digitalWrite(PIN_MOSI, LOW);
     digitalWrite(PIN_CLK, LOW);
     digitalWrite(PIN_CS, HIGH);
+
+    DisableSPIMode();
 
     return registerData;
 }
