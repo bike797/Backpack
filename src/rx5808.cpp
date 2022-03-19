@@ -45,6 +45,7 @@ RX5808::DisableSPIMode()
 
     DBGLN("SPI Disable");
 }
+
 void
 RX5808::SendIndexCmd(uint8_t index)
 {

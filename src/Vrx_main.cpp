@@ -21,6 +21,7 @@
 #include "devWIFI.h"
 #include "devButton.h"
 #include "devLED.h"
+#include "devDVR.h"
 
 #ifdef RAPIDFIRE_BACKPACK
   #include "rapidfire.h"
@@ -32,6 +33,10 @@
   #include "fusion.h"
 #elif defined(HDZERO_BACKPACK)
   #include "hdzero.h"
+#endif
+
+#ifdef EV800D_BACKPACK
+  #include "ev800d.h"
 #endif
 
 /////////// DEFINES ///////////
@@ -72,6 +77,12 @@ device_t *ui_devices[] = {
   &Button_device,
 #endif
   &WIFI_device,
+#ifdef PIN_DVR
+  &DVR_device,
+#endif
+#ifdef PIN_DVR_OBSERVER
+  &DVRObserver_device,
+#endif
 };
 
 #if defined(PLATFORM_ESP32)
@@ -90,6 +101,8 @@ VrxBackpackConfig config;
 
 #ifdef RAPIDFIRE_BACKPACK
   Rapidfire vrxModule;
+#elif defined(EV800D_BACKPACK)
+  EV800D vrxModule;
 #elif defined(RX5808_BACKPACK)
   RX5808 vrxModule;
 #elif defined(STEADYVIEW_BACKPACK)
@@ -204,7 +217,7 @@ void ProcessMSPPacket(mspPacket_t *packet)
     break;
   case MSP_ELRS_BACKPACK_SET_RECORDING_STATE:
     DBGLN("Processing MSP_ELRS_BACKPACK_SET_RECORDING_STATE...");
-    #if defined(HDZERO_BACKPACK)
+    #if defined(HDZERO_BACKPACK) || (defined(EV800D_BACKPACK) && defined(PIN_DVR))
     {
       uint8_t state = packet->readByte();
       uint8_t lowByte = packet->readByte();
