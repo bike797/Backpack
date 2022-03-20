@@ -78,7 +78,7 @@ device_t *ui_devices[] = {
 #endif
   &WIFI_device,
 #ifdef PIN_DVR
-  &DVR_device,
+  &DVRControl_device,
 #endif
 #ifdef PIN_DVR_OBSERVER
   &DVRObserver_device,
@@ -216,7 +216,7 @@ void ProcessMSPPacket(mspPacket_t *packet)
     RebootIntoWifi();
     break;
   case MSP_ELRS_BACKPACK_SET_RECORDING_STATE:
-    DBGLN("Processing MSP_ELRS_BACKPACK_SET_RECORDING_STATE...");
+    DBGLN("Get MSP_ELRS_BACKPACK_SET_RECORDING_STATE.");
     #if defined(HDZERO_BACKPACK) || (defined(EV800D_BACKPACK) && defined(PIN_DVR))
     {
       uint8_t state = packet->readByte();
@@ -224,6 +224,7 @@ void ProcessMSPPacket(mspPacket_t *packet)
       uint8_t highByte = packet->readByte();
       uint16_t delay = lowByte | highByte << 8;
       vrxModule.SetRecordingState(state, delay);
+      DBGLN("Processing MSP_ELRS_BACKPACK_SET_RECORDING_STATE...");
     }
     #endif
     break;

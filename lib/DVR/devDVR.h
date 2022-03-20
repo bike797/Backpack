@@ -2,7 +2,7 @@
 
 #include "device.h"
 
-extern device_t DVR_device;
+extern device_t DVRControl_device;
 extern device_t DVRObserver_device;
 
 typedef enum 
@@ -19,5 +19,5 @@ typedef enum
     DVRObserverReset
 } DVRObserverState_e;
 
-void setDvr(uint32_t _delay, uint8_t _state);
+void setDvr(uint8_t recordingState, uint16_t delay);
 bool getDvrState();

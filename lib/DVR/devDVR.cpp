@@ -2,6 +2,7 @@
 #include "common.h"
 #include "device.h"
 #include "devDVR.h"
+#include "logging.h"
 
 #ifdef PIN_DVR
 
@@ -9,9 +10,10 @@
 #define DVR_RELEASE_BUTTON HIGH
 #define DVR_OBSERVER_REFESHRATE 10
 
-static uint32_t _controlDelay = 0;
-static uint32_t _nextDelay = 0;
-static int _controlState;
+static int _controlDelay;
+static int _nextDelay=0;
+static uint8_t _controlState;
+static uint8_t _nextControlState;
 static DVRControlState_e _DVRControlState = DVRControlNone;
 static DVRObserverState_e _DVRObserverState = DVRObserverUpdate;
 static bool _DVRActivate = false;
@@ -23,11 +25,13 @@ static int updateDVR()
     if (_DVRControlState == DVRControlActive) 
     {
         digitalWrite(PIN_DVR, DVR_PRESS_BUTTON);
+        DBGLN("p");
         return 1000; //over 1000ms delay, hold button for EV800D DVR activation
     }
     if (_DVRControlState == DVRControlInactive) 
     {
         digitalWrite(PIN_DVR, DVR_RELEASE_BUTTON);
+        DBGLN("r");
         _DVRActivate = false;
         return 1000; // delay ms for a getDVRState after button release
     }
@@ -52,10 +56,12 @@ static int DVR_event()
             return _controlDelay;
         } else {
             _nextDelay = _controlDelay;
-            return DURATION_IMMEDIATELY;
+            _nextControlState = _controlState;
+            return DURATION_IGNORE;
         }
     }
     #else
+    {
         if ((_DVRControlState == DVRControlNone ) || (_DVRControlState == DVRControlDelay))
         {
             _DVRControlState = DVRControlDelay;
@@ -63,14 +69,17 @@ static int DVR_event()
             return _controlDelay;
         } else {
             _nextDelay = _controlDelay;
-            return DURATION_IMMEDIATELY;
+            _nextControlState = _controlState;
+            return DURATION_IGNORE;
         }
+    }
     #endif
     return DURATION_NEVER;
 }
 
 static int DVR_timeout()
 {
+    DBGLN("DVRActivate = %d", _DVRActivate);
     if (_DVRControlState == DVRControlDelay)
     {
         _DVRControlState = DVRControlActive;
@@ -81,25 +90,29 @@ static int DVR_timeout()
         return updateDVR();
     } else if (_DVRControlState == DVRControlInactive)
     {
-        _DVRControlState = DVRControlNone; 
         #if defined(PIN_DVR_OBSERVER) && defined(DVR_OBSERVER_DEVICE)
         _DVRActivate = false;
         #endif
-        return DURATION_IMMEDIATELY;
-    } else if (_DVRControlState == DVRControlNone)
-    {
         if (_nextDelay) 
         {
+            _controlDelay = _nextDelay;
+            _controlState = _nextControlState;
             _DVRControlState = DVRControlDelay;
+            _nextDelay = 0;
             return updateDVR();
+        } 
+        else 
+        {
+            _DVRControlState = DVRControlNone; 
+            return DURATION_NEVER;
         }        
-    }
+    }     
     return DURATION_NEVER;
 }
 
-device_t DVR_device = {
+device_t DVRControl_device = {
     .initialize = DVR_initialize,
-    .start = DVR_event,
+    .start = DVR_timeout,
     .event = DVR_event,
     .timeout = DVR_timeout
 };
@@ -119,7 +132,7 @@ static int updateDVRObserver()
 static void DVRObserver_initialize()
 {
     #if defined(PIN_DVR_OBSERVER) && defined(DVR_OBSERVER_DEVICE)
-    pinMode(PIN_DVR_OBSERVER, INPUT);
+    pinMode(PIN_DVR_OBSERVER, INPUT_PULLUP);
     #endif
 }
 
@@ -141,21 +154,28 @@ device_t DVRObserver_device = {
     .timeout = DVRObserver_timeout
 };
 
-void setDVR(uint32_t delay, uint8_t state)
+void setDvr(uint8_t recordingState, uint16_t delay)
 {
     #if defined(PIN_DVR_OBSERVER) && defined(DVR_OBSERVER_DEVICE)
-    if (state != getDvrState() )
     {
-        _controlDelay = delay;
-        _controlState = state;
-        devicesTriggerEvent();
+    if (recordingState != getDvrState() )
+    {
+        _controlDelay = 1000*delay;
+        //_controlDelay = 10*1000;
+        _controlState = recordingState;
+        devicesTriggerEvent();        
+        DBGLN("DVR State = %d ", getDvrState());
+    }
     }
     #else
-        _controlDelay = delay;
-        _controlState = state;
+    {
+        _controlDelay = 1000*delay;
+        //_controlDelay = 10*1000;
+        _controlState = recordingState;
         devicesTriggerEvent();
+    }
     #endif
-
+    DBGLN("SetDVR = %d delay = %d", recordingState, _controlDelay);
 }
 
 bool getDvrState()
