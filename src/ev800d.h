@@ -9,6 +9,7 @@
 #define VRX_DVR_RECORDING_BUTTON_PUSH LOW
 #define VRX_DVR_RECORDING_BUTTON_RELEASE HIGH
 
+void ICACHE_RAM_ATTR DvrStateISR();
 class EV800D
 {
 public:
@@ -18,7 +19,9 @@ public:
     void SetChannelIndex(uint8_t index);
     uint8_t GetRecordingState();
     void SetRecordingState(uint8_t recordingState, uint16_t delay);
+    //bool dvrState = VRX_DVR_RECORDING_UNKNOWN ;
+
 
 private:        
-    bool dvrState = VRX_DVR_RECORDING_UNKNOWN ;
+    //bool dvrState = VRX_DVR_RECORDING_UNKNOWN ;
 };
