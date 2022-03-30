@@ -2,7 +2,7 @@
 #include "common.h"
 #include "device.h"
 
-#if defined(PIN_BUTTON)
+#if defined(PIN_LED)
 
 #if defined(TARGET_RX)
 extern bool connectionHasModelMatch;
